@@ -2,6 +2,10 @@ from Agents import BaseAgent, AgentShape
 
 
 class VirusCell(BaseAgent):
+    @staticmethod
+    def get_type():
+        return "VirusCell"
+
     def step(self):
         """
             write agent behaviour here

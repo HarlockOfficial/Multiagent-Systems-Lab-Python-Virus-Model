@@ -2,6 +2,10 @@ from Agents import BaseAgent, AgentShape
 
 
 class HostCell(BaseAgent):
+    @staticmethod
+    def get_type():
+        return "HostCell"
+
     def step(self):
         """
             write agent behaviour here

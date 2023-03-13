@@ -2,6 +2,10 @@ from Agents import BaseAgent, AgentShape
 
 
 class Ribosome(BaseAgent):
+    @staticmethod
+    def get_type():
+        return "Ribosome"
+
     def step(self):
         """
             write agent behaviour here

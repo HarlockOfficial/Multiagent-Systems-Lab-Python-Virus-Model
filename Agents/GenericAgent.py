@@ -68,6 +68,11 @@ class BaseAgent(threading.Thread):
             actual_name = None
         return actual_name, closest_name
 
+    @staticmethod
+    @abstractmethod
+    def get_type():
+        pass
+
     def run(self):
         self.running = True
         while self.running:
