@@ -21,7 +21,7 @@ class Player(FuncAnimation):
         self.setup(pos)
         FuncAnimation.__init__(self, self.fig, self.func, frames=self.play(),
                                init_func=init_func, fargs=fargs,
-                               save_count=save_count, **kwargs)
+                               save_count=save_count, cache_frame_data=False, **kwargs)
 
     def play(self):
         while self.runs:
@@ -113,31 +113,41 @@ class PlotBuilder:
             funct(index)
             self.last_animation = funct, index
         else:
-            funct, index = self.last_animation
-            funct(index)
+            try:
+                funct, index = self.last_animation
+                funct(index)
+            except TypeError:
+                pass
 
     def add_animation(self, funct):
         self.animation_list.append(funct)
 
     def add_point(self, x, y, z, color):
-        point = self.ax.scatter(x, y, z, color=color)
-        self.plot.canvas.draw()
+        point = self.ax.scatter3D(x, y, z, color=color)
         return point
 
     def add_cube(self, x, y, z, color):
-        axes = [int(x), int(y), int(z)]
-        data = np.ones(axes)
-        cube = self.ax.voxels(data, edgecolor=color, shade=False)
-        self.plot.canvas.draw()
+        def get_cube():
+            phi = np.arange(1, 10, 2) * np.pi / 4
+            Phi, Theta = np.meshgrid(phi, phi)
+
+            x = np.cos(Phi) * np.sin(Theta)
+            y = np.sin(Phi) * np.sin(Theta)
+            z = np.cos(Theta) / np.sqrt(2)
+            return x, y, z
+        cube_x, cube_y, cube_z = get_cube()
+        cube_x = cube_x + x
+        cube_y = cube_y + y
+        cube_z = cube_z + z
+        cube = self.ax.plot_surface(cube_x, cube_y, cube_z, color=color)
         return cube
 
     def add_sphere(self, x, y, z, color):
         u, v = np.mgrid[0:2 * np.pi:20j, 0:np.pi:10j]
-        x = x + np.cos(u) * np.sin(v)
-        y = y + np.sin(u) * np.sin(v)
-        z = z + np.cos(v)
+        x = x + (np.cos(u) * np.sin(v) / 10)
+        y = y + (np.sin(u) * np.sin(v) / 10)
+        z = z + (np.cos(v) / 10)
         sphere = self.ax.plot_wireframe(x, y, z, color=color)
-        self.plot.canvas.draw()
         return sphere
 
     def clear(self):
@@ -145,8 +155,9 @@ class PlotBuilder:
         self.plot.canvas.draw()
 
     def animate(self):
-        self.animation = Player(self.plot, self.__update, maxi=len(self.animation_list))
-        plt.show()
+        animation = Player(self.plot, self.__update, maxi=len(self.animation_list))
+        self.plot.show()
+        return animation
 
     def get_limits(self):
         return self.ax.get_xlim(), self.ax.get_ylim(), self.ax.get_zlim()
