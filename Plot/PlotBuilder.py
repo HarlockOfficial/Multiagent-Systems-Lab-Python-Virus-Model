@@ -85,12 +85,12 @@ class Player(FuncAnimation):
         self.button_oneforward.on_clicked(self.oneforward)
 
 
-class PlotBuilder:
+class PlotBuilder(object):
     instance = None
 
     def __new__(cls, *args, **kwargs):
-        if not hasattr(cls, 'instance') or cls.instance is None:
-            cls.instance = super(PlotBuilder, cls).__new__(cls)
+        if not hasattr(cls, 'instance') or cls.instance is None or not isinstance(cls.instance, cls):
+            cls.instance = object.__new__(cls, *args, **kwargs)
         return cls.instance
 
     def __init__(self):
@@ -103,8 +103,8 @@ class PlotBuilder:
         self.ax.set_xlim3d(0, TOP_LIMIT)
         self.ax.set_ylim3d(0, TOP_LIMIT)
         self.ax.set_zlim3d(0, TOP_LIMIT)
-
-        self.animation_list = []
+        if not hasattr(self, 'animation_list') or self.animation_list is None or self.animation_list == []:
+            self.animation_list = []
         self.last_animation = None
 
     def __update(self, index):
@@ -123,7 +123,9 @@ class PlotBuilder:
         self.animation_list.append(funct)
 
     def add_point(self, x, y, z, color):
-        point = self.ax.scatter3D(x, y, z, color=color)
+        point, = self.ax.plot(xs=[], ys=[], zs=[], color=color)
+        point.set_data([x], [y])
+        point.set_3d_properties([z])
         return point
 
     def add_cube(self, x, y, z, color):
@@ -139,7 +141,7 @@ class PlotBuilder:
         cube_x = cube_x + x
         cube_y = cube_y + y
         cube_z = cube_z + z
-        cube = self.ax.plot_surface(cube_x, cube_y, cube_z, color=color)
+        cube = self.ax.plot_wireframe(cube_x, cube_y, cube_z, color=color)
         return cube
 
     def add_sphere(self, x, y, z, color):
