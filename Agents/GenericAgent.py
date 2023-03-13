@@ -14,6 +14,8 @@ class AgentShape(enum.Enum):
 
 
 class BaseAgent(threading.Thread):
+    all_agents = []
+
     def __init__(self, color, shape: AgentShape, position=None, plot=None):
         threading.Thread.__init__(self)
         self.running = False
@@ -41,6 +43,8 @@ class BaseAgent(threading.Thread):
 
         if self.graphic_component is None:
             raise Exception("Graphic component not initialized")
+
+        BaseAgent.all_agents.append(self)
 
     @staticmethod
     def closest_colour(requested_colour):
@@ -96,3 +100,11 @@ class BaseAgent(threading.Thread):
             self.graphic_component = self.plot.add_point(self.position[0], self.position[1], self.position[2], self.color)
         else:
             raise NotImplementedError("Shape not implemented")
+
+    @staticmethod
+    def find_agent(agent_type):
+        agent_list = []
+        for agent in BaseAgent.all_agents:
+            if agent.get_type() == agent_type:
+                agent_list.append(agent)
+        return agent_list
