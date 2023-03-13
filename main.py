@@ -5,9 +5,9 @@ from Scheduler import Scheduler
 
 def main():
     full_list = []
-    for i in range(10):
-        full_list.append(VirusCell())
     for i in range(3):
+        full_list.append(VirusCell())
+    for i in range(2):
         hc = HostCell()
         ribosome = Ribosome(parent_cell=hc)
         full_list.append(hc)
@@ -19,7 +19,7 @@ def main():
     except KeyboardInterrupt:
         scheduler.stop()
         scheduler.join()
-    PlotBuilder().animate()
+    animation = PlotBuilder().animate()
 
 
 if __name__ == '__main__':
