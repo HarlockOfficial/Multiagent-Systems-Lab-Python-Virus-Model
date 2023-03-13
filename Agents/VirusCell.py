@@ -1,4 +1,8 @@
+import math
+
 from Agents import BaseAgent, AgentShape
+import Agents
+import logger
 
 
 class VirusCell(BaseAgent):
@@ -10,13 +14,35 @@ class VirusCell(BaseAgent):
         """
             write agent behaviour here
         """
-        pass
+        host_cell_list = BaseAgent.find_agent(Agents.HostCell.get_type())
+        distances = dict()
+        for host_cell in host_cell_list:
+            distances[host_cell] = VirusCell.__distance(self.position, host_cell)
+        closest_host_cell = min(distances, key=distances.get)
+        self.position = (self.position[0] + ((closest_host_cell.position[0] - self.position[0]) * self.move_speed),
+                         self.position[1] + ((closest_host_cell.position[1] - self.position[1]) * self.move_speed),
+                         self.position[2] + ((closest_host_cell.position[2] - self.position[2]) * self.move_speed))
+        self.position_history.append(self.position)
+        logger.log("virus cell " + str(id(self)) + " position: " + str(self.position))
 
     def animation(self, index):
         """
             write agent animation behaviour here
         """
-        pass
+        self.graphic_component.delete()
+        self.graphic_component = self.plot.add_point(self.position_history[index][0],
+                                                     self.position_history[index][1],
+                                                     self.position_history[index][2], self.color)
 
     def __init__(self):
         BaseAgent.__init__(self, color=(255, 0, 0), shape=AgentShape.POINT)
+        self.move_speed = 0.01
+        self.position_history = []
+        self.position_history.append(self.position)
+        logger.log("virus cell " + str(id(self)) + " created at position: " + str(self.position))
+
+    @staticmethod
+    def __distance(self_position, host_cell):
+        return math.sqrt((self_position[0] - host_cell.position[0]) ** 2 +
+                         (self_position[1] - host_cell.position[1]) ** 2 +
+                         (self_position[2] - host_cell.position[2]) ** 2)
