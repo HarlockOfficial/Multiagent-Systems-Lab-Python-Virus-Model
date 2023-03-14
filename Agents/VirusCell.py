@@ -39,7 +39,7 @@ class VirusCell(BaseAgent):
         if distance < float(os.getenv('VIRUS_CELL_MIN_DISTANCE_TO_ENTER_OTHER_CELL')):
             if closest_host_cell.is_infected():
                 self.direction = VirusCellDirection.OUT_OF_HOST_CELL
-                # TODO add behaviour here virus got bounced back
+                # TODO add behaviour here, virus got bounced back
             else:
                 closest_host_cell.set_infected()
                 self.direction = VirusCellDirection.TO_RIBOSOME
@@ -55,6 +55,7 @@ class VirusCell(BaseAgent):
 
     def __step_out_of_host_cell(self):
         # TODO implement movement out of host cell
+        # when virus is out of host cell, the direction has to be set to TO_HOST_CELL
         pass
 
     def step(self):
@@ -62,7 +63,11 @@ class VirusCell(BaseAgent):
             write agent behaviour here
         """
         if self.direction == VirusCellDirection.TO_HOST_CELL:
-            self.__step_to_host_cell()
+            self.life_points -= float(os.getenv('VIRUS_CELL_LIFE_POINTS_DECREASE'))
+            if self.life_points <= 0:
+                self.destroy()
+            else:
+                self.__step_to_host_cell()
         elif self.direction == VirusCellDirection.TO_RIBOSOME:
             self.__step_to_ribosome()
         elif self.direction == VirusCellDirection.OUT_OF_HOST_CELL:
@@ -87,6 +92,7 @@ class VirusCell(BaseAgent):
         self.position_history = []
         self.position_history.append(self.position)
         self.direction = initial_direction
+        self.life_points = float(os.getenv('VIRUS_CELL_LIFE_POINTS'))
         import json
         pos = [self.position[0], self.position[1], self.position[2]]
         logger.log("virus cell;" + str(id(self)) + ";" + str(json.dumps(pos)))
