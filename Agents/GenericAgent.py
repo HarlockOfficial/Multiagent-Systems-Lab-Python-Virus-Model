@@ -106,6 +106,11 @@ class BaseAgent(threading.Thread):
         else:
             raise NotImplementedError("Shape not implemented")
 
+    def destroy(self):
+        self.stop()
+        BaseAgent.all_agents.remove(self)
+        self.graphic_component.remove()
+
     @staticmethod
     def find_agent(agent_type):
         agent_list = []

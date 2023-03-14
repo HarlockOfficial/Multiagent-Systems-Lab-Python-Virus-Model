@@ -1,11 +1,10 @@
+import os
+
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 import mpl_toolkits.axes_grid1
 import matplotlib.widgets
-
-
-TOP_LIMIT = 10
 
 
 class Player(FuncAnimation):
@@ -100,9 +99,9 @@ class PlotBuilder(object):
         self.ax.set_ylabel('')
         self.ax.set_zlabel('')
 
-        self.ax.set_xlim3d(0, TOP_LIMIT)
-        self.ax.set_ylim3d(0, TOP_LIMIT)
-        self.ax.set_zlim3d(0, TOP_LIMIT)
+        self.ax.set_xlim3d(os.getenv('PLOT_BUILDER_BOTTOM_LIMIT'), os.getenv('PLOT_BUILDER_TOP_LIMIT'))
+        self.ax.set_ylim3d(os.getenv('PLOT_BUILDER_BOTTOM_LIMIT'), os.getenv('PLOT_BUILDER_TOP_LIMIT'))
+        self.ax.set_zlim3d(os.getenv('PLOT_BUILDER_BOTTOM_LIMIT'), os.getenv('PLOT_BUILDER_TOP_LIMIT'))
         if not hasattr(self, 'animation_list') or self.animation_list is None or self.animation_list == []:
             self.animation_list = []
         self.last_animation = None
