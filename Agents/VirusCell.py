@@ -33,6 +33,8 @@ class VirusCell(BaseAgent):
         return closest_agent
 
     def __step_to_host_cell(self):
+        # TODO currently the distance is calculated to the center of the host cell,
+        #  but it should be calculated to the surface of it (cube)
         host_cell_list = BaseAgent.find_agent(Agents.HostCell.get_type())
         closest_host_cell = self.__generic_step_to_other_agent(host_cell_list)
         distance = VirusCell.__distance(self.position, closest_host_cell)
@@ -46,6 +48,8 @@ class VirusCell(BaseAgent):
                 # TODO add behaviour here virus entered host cell
 
     def __step_to_ribosome(self):
+        # TODO currently the distance is calculated to the center of the ribosome,
+        #  but it should be calculated to the surface of it (sphere)
         ribosome_list = BaseAgent.find_agent(Agents.Ribosome.get_type())
         ribosome = self.__generic_step_to_other_agent(ribosome_list)
         distance = VirusCell.__distance(self.position, ribosome)
