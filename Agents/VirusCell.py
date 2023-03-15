@@ -5,6 +5,7 @@ import os
 from Agents import BaseAgent, AgentShape
 import Agents
 import logger
+from TupleSpace import TupleSpace
 
 
 class VirusCellDirection(enum.Enum):
@@ -18,10 +19,10 @@ class VirusCell(BaseAgent):
     def get_type():
         return "VirusCell"
 
-    def __generic_step_to_other_agent(self, other_agent_list):
+    def __generic_step_to_other_agent(self, other_agent_list, distance_function):
         distances = dict()
         for agent in other_agent_list:
-            distances[agent] = VirusCell.__distance(self.position, agent)
+            distances[agent] = distance_function(self.position, agent)
         closest_agent = min(distances, key=distances.get)
         self.position = (self.position[0] + ((closest_agent.position[0] - self.position[0]) * self.move_speed),
                          self.position[1] + ((closest_agent.position[1] - self.position[1]) * self.move_speed),
@@ -34,20 +35,23 @@ class VirusCell(BaseAgent):
 
     def __step_to_host_cell(self):
         host_cell_list = BaseAgent.find_agent(Agents.HostCell.get_type())
-        closest_host_cell = self.__generic_step_to_other_agent(host_cell_list)
+        closest_host_cell = self.__generic_step_to_other_agent(host_cell_list, VirusCell.__best_host_cell)
         am_i_touching_host_cell = VirusCell.__is_touching_host_cell(self.position, closest_host_cell)
         if am_i_touching_host_cell:
-            if closest_host_cell.is_infected():
+            if TupleSpace().take((str(id(closest_host_cell)),)) is None:
                 self.direction = VirusCellDirection.OUT_OF_HOST_CELL
-                # TODO add behaviour here, virus got bounced back
+                curr_points = 0
+                infected = TupleSpace().take(('infected_' + str(id(closest_host_cell)),))
+                if infected is not None:
+                    curr_points = infected[1]
+                curr_points += os.getenv('INFECTED_CELL_INCREASE')
+                TupleSpace().out(('infected_' + str(id(closest_host_cell)), curr_points))
             else:
-                closest_host_cell.set_infected()
                 self.direction = VirusCellDirection.TO_RIBOSOME
-                # TODO add behaviour here virus entered host cell
 
     def __step_to_ribosome(self):
         ribosome_list = BaseAgent.find_agent(Agents.Ribosome.get_type())
-        ribosome = self.__generic_step_to_other_agent(ribosome_list)
+        ribosome = self.__generic_step_to_other_agent(ribosome_list, VirusCell.__distance)
         am_i_touching_ribosome = VirusCell.__is_touching_ribosome(self.position, ribosome)
         if am_i_touching_ribosome:
             ribosome.has_virus_reached_ribosome = True
@@ -102,6 +106,13 @@ class VirusCell(BaseAgent):
         return math.sqrt((self_position[0] - other_agent.position[0]) ** 2 +
                          (self_position[1] - other_agent.position[1]) ** 2 +
                          (self_position[2] - other_agent.position[2]) ** 2)
+
+    @staticmethod
+    def __best_host_cell(_, other_agent: Agents.HostCell) -> float:
+        cell_score = TupleSpace().get(('infected_' + str(id(other_agent)),))
+        if cell_score is not None:
+            return cell_score[1]
+        return 0
 
     @staticmethod
     def __is_touching_host_cell(self_position, closest_host_cell: Agents.HostCell) -> bool:

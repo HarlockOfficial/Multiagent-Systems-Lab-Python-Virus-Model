@@ -11,32 +11,32 @@ class TupleSpace:
         self.tuples = []
         self.unpublished = []
 
-    def out(self, entry):
+    def out(self, entry: tuple):
         t = self.__take_unpublished(entry)
         if t is not None:
             self.tuples.append(t)
         else:
             self.tuples.append(entry)
 
-    def get(self, entry):
+    def get(self, entry: tuple):
         for t in self.tuples:
-            if t == entry:
+            if t[0] == entry[0]:
                 return t
         return None
 
-    def __take_unpublished(self, entry):
+    def __take_unpublished(self, entry: tuple):
         for t in self.unpublished:
-            if t == entry:
+            if t[0] == entry[0]:
                 self.unpublished.remove(t)
                 return t
         return None
 
-    def take(self, entry):
+    def take(self, entry: tuple):
         for t in self.tuples:
-            if t == entry:
+            if t[0] == entry[0]:
                 self.tuples.remove(t)
                 return t
         return None
 
-    def eval(self, entry):
+    def eval(self, entry: tuple):
         self.unpublished.append(entry)

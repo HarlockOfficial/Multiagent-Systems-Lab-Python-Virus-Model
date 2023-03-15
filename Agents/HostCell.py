@@ -2,6 +2,7 @@ import os
 
 from Agents import BaseAgent, AgentShape
 import logger
+from TupleSpace import TupleSpace
 
 
 class HostCell(BaseAgent):
@@ -15,8 +16,10 @@ class HostCell(BaseAgent):
         """
         if self.current_infection > 0:
             self.current_infection -= int(os.getenv('HOST_CELL_INFECTION_DECREASE'))
-        elif self.current_infection < 0:
+        elif self.current_infection <= 0:
             self.current_infection = 0
+            if TupleSpace().take((str(id(self)),)) is None:
+                TupleSpace().out((str(id(self)),))
         self.infection_history.append(self.current_infection)
         logger.log("infection;" + str(id(self)) + ";" + str(self.current_infection))
 
@@ -36,12 +39,7 @@ class HostCell(BaseAgent):
         self.current_infection = 0.0
         self.infection_history = []
         self.infection_history.append(self.current_infection)
+        TupleSpace().out((str(id(self)),))
         import json
         pos = [self.position[0], self.position[1], self.position[2]]
         logger.log("host cell;" + str(id(self)) + ";" + str(json.dumps(pos)))
-
-    def set_infected(self):
-        self.current_infection = int(os.getenv('HOST_CELL_INFECTION_MAX'))
-
-    def is_infected(self):
-        return self.current_infection > 0
