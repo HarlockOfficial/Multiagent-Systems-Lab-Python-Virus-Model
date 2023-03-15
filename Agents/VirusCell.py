@@ -33,12 +33,10 @@ class VirusCell(BaseAgent):
         return closest_agent
 
     def __step_to_host_cell(self):
-        # TODO currently the distance is calculated to the center of the host cell,
-        #  but it should be calculated to the surface of it (cube)
         host_cell_list = BaseAgent.find_agent(Agents.HostCell.get_type())
         closest_host_cell = self.__generic_step_to_other_agent(host_cell_list)
-        distance = VirusCell.__distance(self.position, closest_host_cell)
-        if distance < float(os.getenv('VIRUS_CELL_MIN_DISTANCE_TO_ENTER_OTHER_CELL')):
+        am_i_touching_host_cell = VirusCell.__is_touching_host_cell(self.position, closest_host_cell)
+        if am_i_touching_host_cell:
             if closest_host_cell.is_infected():
                 self.direction = VirusCellDirection.OUT_OF_HOST_CELL
                 # TODO add behaviour here, virus got bounced back
@@ -48,12 +46,10 @@ class VirusCell(BaseAgent):
                 # TODO add behaviour here virus entered host cell
 
     def __step_to_ribosome(self):
-        # TODO currently the distance is calculated to the center of the ribosome,
-        #  but it should be calculated to the surface of it (sphere)
         ribosome_list = BaseAgent.find_agent(Agents.Ribosome.get_type())
         ribosome = self.__generic_step_to_other_agent(ribosome_list)
-        distance = VirusCell.__distance(self.position, ribosome)
-        if distance < float(os.getenv('VIRUS_CELL_MIN_DISTANCE_TO_ENTER_OTHER_CELL')):
+        am_i_touching_ribosome = VirusCell.__is_touching_ribosome(self.position, ribosome)
+        if am_i_touching_ribosome:
             ribosome.has_virus_reached_ribosome = True
             self.destroy()
 
@@ -102,7 +98,18 @@ class VirusCell(BaseAgent):
         logger.log("virus cell;" + str(id(self)) + ";" + str(json.dumps(pos)))
 
     @staticmethod
-    def __distance(self_position, host_cell):
-        return math.sqrt((self_position[0] - host_cell.position[0]) ** 2 +
-                         (self_position[1] - host_cell.position[1]) ** 2 +
-                         (self_position[2] - host_cell.position[2]) ** 2)
+    def __distance(self_position, other_agent: Agents.BaseAgent) -> float:
+        return math.sqrt((self_position[0] - other_agent.position[0]) ** 2 +
+                         (self_position[1] - other_agent.position[1]) ** 2 +
+                         (self_position[2] - other_agent.position[2]) ** 2)
+
+    @staticmethod
+    def __is_touching_host_cell(self_position, closest_host_cell: Agents.HostCell) -> bool:
+        is_x_touching = 1 if abs(self_position[0] - closest_host_cell.position[0]) <= closest_host_cell.length / 2 else 0
+        is_y_touching = 1 if abs(self_position[1] - closest_host_cell.position[1]) <= closest_host_cell.length / 2 else 0
+        is_z_touching = 1 if abs(self_position[2] - closest_host_cell.position[2]) <= closest_host_cell.length / 2 else 0
+        return is_z_touching + is_y_touching + is_x_touching >= 2
+
+    @staticmethod
+    def __is_touching_ribosome(position, ribosome) -> bool:
+        return VirusCell.__distance(position, ribosome) <= ribosome.length / 2
