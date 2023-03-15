@@ -125,7 +125,7 @@ class PlotBuilder(object):
         point, = self.ax.plot(xs=[], ys=[], zs=[], color=color)
         point.set_data([x], [y])
         point.set_3d_properties([z])
-        return point
+        return point, 1
 
     def add_cube(self, x, y, z, color):
         def get_cube():
@@ -136,20 +136,21 @@ class PlotBuilder(object):
             y = np.sin(Phi) * np.sin(Theta)
             z = np.cos(Theta) / np.sqrt(2)
             return x, y, z
+        # get_cube returns the data of a cube 1 x 1 x 1 centered at the origin
         cube_x, cube_y, cube_z = get_cube()
-        cube_x = cube_x + x
-        cube_y = cube_y + y
-        cube_z = cube_z + z
+        cube_x = cube_x * float(os.getenv('CUBE_SIDE_LENGTH')) + x
+        cube_y = cube_y * float(os.getenv('CUBE_SIDE_LENGTH')) + y
+        cube_z = cube_z * float(os.getenv('CUBE_SIDE_LENGTH')) + z
         cube = self.ax.plot_wireframe(cube_x, cube_y, cube_z, color=color)
-        return cube
+        return cube, float(os.getenv('CUBE_SIDE_LENGTH'))
 
     def add_sphere(self, x, y, z, color):
         u, v = np.mgrid[0:2 * np.pi:20j, 0:np.pi:10j]
-        x = x + (np.cos(u) * np.sin(v) / 10)
-        y = y + (np.sin(u) * np.sin(v) / 10)
-        z = z + (np.cos(v) / 10)
+        x = x + (np.cos(u) * np.sin(v) / 2 * float(os.getenv('SPHERE_RADIUS')))
+        y = y + (np.sin(u) * np.sin(v) / 2 * float(os.getenv('SPHERE_RADIUS')))
+        z = z + (np.cos(v) / 2 * float(os.getenv('SPHERE_RADIUS')))
         sphere = self.ax.plot_wireframe(x, y, z, color=color)
-        return sphere
+        return sphere, float(os.getenv('SPHERE_RADIUS'))
 
     def clear(self):
         self.ax.clear()

@@ -1,9 +1,12 @@
+from dotenv import load_dotenv
+
 from Agents import VirusCell, HostCell, Ribosome
 from Plot import PlotBuilder
 from Scheduler import Scheduler
 
 
 def main():
+    load_dotenv()
     full_list = []
     for i in range(3):
         full_list.append(VirusCell())

@@ -38,10 +38,11 @@ class BaseAgent(threading.Thread):
 
         self.shape = shape
         self.graphic_component = None
+        self.length = None
 
         self.draw()
 
-        if self.graphic_component is None:
+        if self.graphic_component is None or self.length is None:
             raise Exception("Graphic component not initialized")
 
         BaseAgent.all_agents.append(self)
@@ -98,13 +99,13 @@ class BaseAgent(threading.Thread):
 
     def draw(self):
         if self.shape == AgentShape.CUBE:
-            self.graphic_component = self.plot.add_cube(self.position[0], self.position[1], self.position[2],
+            self.graphic_component, self.length = self.plot.add_cube(self.position[0], self.position[1], self.position[2],
                                                         self.color)
         elif self.shape == AgentShape.SPHERE:
-            self.graphic_component = self.plot.add_sphere(self.position[0], self.position[1], self.position[2],
+            self.graphic_component, self.length = self.plot.add_sphere(self.position[0], self.position[1], self.position[2],
                                                           self.color)
         elif self.shape == AgentShape.POINT:
-            self.graphic_component = self.plot.add_point(self.position[0], self.position[1], self.position[2],
+            self.graphic_component, self.length = self.plot.add_point(self.position[0], self.position[1], self.position[2],
                                                          self.color)
         else:
             raise NotImplementedError("Shape not implemented")
