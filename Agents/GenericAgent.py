@@ -40,6 +40,7 @@ class BaseAgent(threading.Thread):
                     if np.linalg.norm(agent.position - self.position) < float(os.getenv('GENERIC_TOLERANCE')):
                         update_position = True
                         break
+            # TODO position generation should take in account the agent shape
         else:
             self.position = position
 
