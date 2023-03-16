@@ -19,11 +19,19 @@ class VirusCell(BaseAgent):
     def get_type():
         return "VirusCell"
 
-    def __generic_step_to_other_agent(self, other_agent_list, distance_function):
+    def __get_closest_agent(self, other_agent_list, distance_function):
         distances = dict()
         for agent in other_agent_list:
             distances[agent] = distance_function(self.position, agent)
         closest_agent = min(distances, key=distances.get)
+        return closest_agent
+
+    def __generic_step_to_other_agent(self, other_agent_list=None, distance_function=None, closest_agent=None):
+        if closest_agent is None:
+            if distance_function is None or other_agent_list is None:
+                raise Exception("distance_function and other_agent_list must be provided if closest_agent is not "
+                                "provided")
+            closest_agent = self.__get_closest_agent(other_agent_list, distance_function)
         self.position = (self.position[0] + ((closest_agent.position[0] - self.position[0]) * self.move_speed),
                          self.position[1] + ((closest_agent.position[1] - self.position[1]) * self.move_speed),
                          self.position[2] + ((closest_agent.position[2] - self.position[2]) * self.move_speed))
@@ -39,6 +47,7 @@ class VirusCell(BaseAgent):
         am_i_touching_host_cell = VirusCell.__is_touching_host_cell(self.position, closest_host_cell)
         if am_i_touching_host_cell:
             if TupleSpace().take((str(id(closest_host_cell)),)) is None:
+                # just got bounced back
                 self.direction = VirusCellDirection.OUT_OF_HOST_CELL
                 curr_points = 0
                 infected = TupleSpace().take(('infected_' + str(id(closest_host_cell)),))
@@ -58,9 +67,21 @@ class VirusCell(BaseAgent):
             self.destroy()
 
     def __step_out_of_host_cell(self):
-        # TODO implement movement out of host cell
-        # when virus is out of host cell, the direction has to be set to TO_HOST_CELL
-        pass
+        host_cell_list = BaseAgent.find_agent(Agents.HostCell.get_type())
+        closest_host_cell = self.__get_closest_agent(host_cell_list, VirusCell.__distance)
+        am_i_touching_host_cell = VirusCell.__is_touching_host_cell(self.position, closest_host_cell)
+        if not am_i_touching_host_cell:
+            self.direction = VirusCellDirection.TO_HOST_CELL
+        else:
+            best_cell = self.__get_closest_agent(host_cell_list, VirusCell.__best_host_cell)
+            if id(best_cell) != id(closest_host_cell):
+                self.direction = VirusCellDirection.TO_HOST_CELL
+            else:
+                for cell in host_cell_list:
+                    if id(best_cell) != id(cell):
+                        best_cell = cell
+                        break
+            self.__generic_step_to_other_agent(closest_agent=best_cell)
 
     def step(self):
         """
